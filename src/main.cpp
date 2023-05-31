@@ -102,6 +102,15 @@ void setSensor(){
     int umidade = dht.readHumidity();
     Serial.print(temperatura);
     Serial.println(F("°C"));
+    if(temperatura > 29){
+        controlleRele(true);
+        digitalWrite(26,HIGH);
+
+    }else{
+        controlleRele(false);
+        digitalWrite(26,LOW);
+    }
+    
     //delay(ONE_MINUTE);
     sprintf(msg, "{\"temp\":%i, \"umid\":%i}", temperatura,umidade);
     client.publish(temp,msg);
@@ -117,6 +126,7 @@ void setPins(){
     pinMode(23,OUTPUT);
     pinMode(22,OUTPUT);
     pinMode(12,OUTPUT);
+    pinMode(26,OUTPUT);
 }
 
 void setup(){
