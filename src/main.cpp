@@ -16,6 +16,7 @@ const char *pass2 = "secret123";
 int temperatura;
 int atrasoTemp = 2500;  //tempo do delay para chamar novamente a função de medir temperatura
 unsigned long tempoAnteriorTemp = 0;
+bool isActivateForMqtt = false;
 
 unsigned long lastMsg = 0;        //unsigned long = inteiro de 32 bits sem sinal
 #define MSG_BUFFER_SIZE  (50)     
@@ -43,9 +44,11 @@ void callback(char* topic, byte* payload, unsigned int lenght) {
     for(int i =0; i < lenght; i++){
         if((char)payload[0] == '1'){
             controlleRele(true);
+            isActivateForMqtt = true;
         }
         if((char)payload[0] == '0'){
             controlleRele(false);
+            isActivateForMqtt = false;
         }
     }
    
@@ -82,7 +85,7 @@ void publicAnyThing(){
 
 void wifiConnect(){
     WiFi.mode(WIFI_STA);
-    WiFi.begin(ssad2,pass2);
+    WiFi.begin(ssad,pass);
     while (WiFi.status() != WL_CONNECTED){
         delay(1000);
         Serial.println("tentando conectar no wifi...");
@@ -102,14 +105,17 @@ void setSensor(){
     int umidade = dht.readHumidity();
     Serial.print(temperatura);
     Serial.println(F("°C"));
-    if(temperatura > 29){
-        controlleRele(true);
-        digitalWrite(26,HIGH);
+    if(isActivateForMqtt == false){
+        if(temperatura > 30){
+            controlleRele(true);
+            digitalWrite(26,HIGH);
 
-    }else{
-        controlleRele(false);
-        digitalWrite(26,LOW);
+        }else{
+            controlleRele(false);
+            digitalWrite(26,LOW);
+        }
     }
+    
     
     //delay(ONE_MINUTE);
     sprintf(msg, "{\"temp\":%i, \"umid\":%i}", temperatura,umidade);
